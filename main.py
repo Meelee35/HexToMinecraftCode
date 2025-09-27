@@ -1,41 +1,75 @@
-from PySide6.QtWidgets import QApplication, QDialog, QWidget, QMessageBox, QStyleFactory
+from PySide6.QtWidgets import QApplication, QDialog, QWidget, QMessageBox
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile
 import sys
-import os
 
 def error_dialog(message: str, parent: QWidget=None):
   error_box = QMessageBox(parent)
-  error_box.setIcon(QMessageBox.Critical)  # red error icon
+  error_box.setIcon(QMessageBox.Critical)
   error_box.setWindowTitle("Error")
   error_box.setText(message)
   error_box.setStandardButtons(QMessageBox.Ok)
   error_box.exec()
 
-
-
 def load_ui(path: str):
-  ui_file = QFile(path)
-  ui_file.open(QFile.ReadOnly)
-  loader = QUiLoader()
-  ui = loader.load(ui_file)
-  ui_file.close()
+  try: 
+    ui_file = QFile(path)
+    ui_file.open(QFile.ReadOnly)
+    loader = QUiLoader()
+    ui = loader.load(ui_file)
+    ui_file.close()
+  except Exception as e:
+    error_dialog(f"Failed to load UI file: {e}")
+    exit(1)
   return ui
-
 
 def hexToMC(hex_code: str, use_essentials: bool=False):
   hex_code = hex_code.lstrip('#')
-  if len (hex_code) != 6:
-    raise ValueError("Invalid hex color code")
+  if len(hex_code) != 6:
+    error_dialog("Hex code must be 6 characters long (e.g. #RRGGBB)")
+    return None
   
+  delimeter = "&" if use_essentials else "§"
+  converted = delimeter + "x"
+  for c in hex_code:
+    if c not in "0123456789abcdefABCDEF":
+      error_dialog("Hex code must only contain hexadecimal characters (0-9, A-F)")
+      return None
+    converted += delimeter + c
+  return converted
 
-app = QApplication([])
-if sys.platform.startswith("linux"):
-    # Let Qt pick up the desktop environment theme
-    os.environ["QT_QPA_PLATFORMTHEME"] = os.environ.get("QT_QPA_PLATFORMTHEME", "gtk2")
-elif sys.platform.startswith("win"):
-    # Windows uses its native style automatically
-    pass
-ui = load_ui("main.ui")
-ui.show()
-app.exec()
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
+import sys
+
+def main():
+    app = QApplication([])
+
+    ui = load_ui("main.ui")
+    output = load_ui("output.ui")
+    output.okbtnbox.accepted.connect(output.accept)
+
+    ui.setFixedSize(ui.size())
+    ui.setWindowFlags(ui.windowFlags() & ~Qt.WindowMaximizeButtonHint)
+
+    output.setFixedSize(output.size())
+    output.setWindowFlags(output.windowFlags() & ~Qt.WindowMaximizeButtonHint)
+
+    def on_convert():
+        hex_code = ui.hexInput.text().strip()
+        use_essentials = ui.useEssential.isChecked()
+        try:
+            result = hexToMC(hex_code, use_essentials)
+        except ValueError as e:
+            error_dialog(str(e), ui)
+            return
+        if result is not None:
+          output.output.setText(result)
+          output.exec()
+
+    ui.convertbtn.clicked.connect(on_convert)
+
+    ui.show()
+    sys.exit(app.exec())
+
+main()
