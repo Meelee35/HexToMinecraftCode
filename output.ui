@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dialogs</class>
+ <widget class="QDialog" name="dialogs">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>223</width>
+    <height>133</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hex2MC</string>
+  </property>
+  <widget class="QDialogButtonBox" name="okbtnbox">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>90</y>
+     <width>81</width>
+     <height>38</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Inter</family>
+    </font>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::StandardButton::Ok</set>
+   </property>
+  </widget>
+  <widget class="QTextBrowser" name="output">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>201</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Inter</family>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
