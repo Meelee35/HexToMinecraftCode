@@ -4,11 +4,12 @@ from PySide6.QtCore import QFile, Qt
 import sys
 import os
 
+
 def resource_path(path: str):
-    """ Get absolute path to resource, works for dev and PyInstaller bundle """
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         return os.path.join(sys._MEIPASS, path)
     return path
+
 
 def error_dialog(message: str, parent: QWidget = None):
     error_box = QMessageBox(parent)
@@ -17,6 +18,7 @@ def error_dialog(message: str, parent: QWidget = None):
     error_box.setText(message)
     error_box.setStandardButtons(QMessageBox.Ok)
     error_box.exec()
+
 
 def load_ui(path: str):
     full_path = resource_path(path)
@@ -32,12 +34,13 @@ def load_ui(path: str):
         sys.exit(1)
     return ui
 
+
 def hexToMC(hex_code: str, use_essentials: bool = False):
-    hex_code = hex_code.lstrip('#')
+    hex_code = hex_code.lstrip("#")
     if len(hex_code) != 6:
         error_dialog("Hex code must be 6 characters long (e.g. #RRGGBB)")
         return None
-    
+
     delimeter = "&" if use_essentials else "§"
     converted = delimeter + "x"
     for c in hex_code:
@@ -47,6 +50,7 @@ def hexToMC(hex_code: str, use_essentials: bool = False):
         converted += delimeter + c
     return converted
 
+
 def main():
     app = QApplication([])
 
@@ -55,7 +59,9 @@ def main():
     output.okbtnbox.accepted.connect(output.accept)
 
     ui.setFixedSize(ui.size())
-    ui.setWindowFlags(ui.windowFlags() & ~Qt.WindowMaximizeButtonHint)
+    ui.setWindowFlag(Qt.WindowMinimizeButtonHint, True)
+    ui.setWindowFlag(Qt.WindowCloseButtonHint, True)
+    ui.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
 
     output.setFixedSize(output.size())
     output.setWindowFlags(output.windowFlags() & ~Qt.WindowMaximizeButtonHint)
@@ -72,6 +78,7 @@ def main():
 
     ui.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()
