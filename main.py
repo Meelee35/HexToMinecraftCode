@@ -1,46 +1,51 @@
 from PySide6.QtWidgets import QApplication, QDialog, QWidget, QMessageBox
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile
+from PySide6.QtCore import QFile, Qt
 import sys
+import os
 
-def error_dialog(message: str, parent: QWidget=None):
-  error_box = QMessageBox(parent)
-  error_box.setIcon(QMessageBox.Critical)
-  error_box.setWindowTitle("Error")
-  error_box.setText(message)
-  error_box.setStandardButtons(QMessageBox.Ok)
-  error_box.exec()
+def resource_path(path: str):
+    """ Get absolute path to resource, works for dev and PyInstaller bundle """
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, path)
+    return path
+
+def error_dialog(message: str, parent: QWidget = None):
+    error_box = QMessageBox(parent)
+    error_box.setIcon(QMessageBox.Critical)
+    error_box.setWindowTitle("Error")
+    error_box.setText(message)
+    error_box.setStandardButtons(QMessageBox.Ok)
+    error_box.exec()
 
 def load_ui(path: str):
-  try: 
-    ui_file = QFile(path)
-    ui_file.open(QFile.ReadOnly)
+    full_path = resource_path(path)
+    ui_file = QFile(full_path)
+    if not ui_file.open(QFile.ReadOnly):
+        error_dialog(f"Failed to open UI file: {full_path}")
+        sys.exit(1)
     loader = QUiLoader()
     ui = loader.load(ui_file)
     ui_file.close()
-  except Exception as e:
-    error_dialog(f"Failed to load UI file: {e}")
-    exit(1)
-  return ui
+    if ui is None:
+        error_dialog(f"Failed to load UI file: {full_path}")
+        sys.exit(1)
+    return ui
 
-def hexToMC(hex_code: str, use_essentials: bool=False):
-  hex_code = hex_code.lstrip('#')
-  if len(hex_code) != 6:
-    error_dialog("Hex code must be 6 characters long (e.g. #RRGGBB)")
-    return None
-  
-  delimeter = "&" if use_essentials else "§"
-  converted = delimeter + "x"
-  for c in hex_code:
-    if c not in "0123456789abcdefABCDEF":
-      error_dialog("Hex code must only contain hexadecimal characters (0-9, A-F)")
-      return None
-    converted += delimeter + c
-  return converted
-
-from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
-import sys
+def hexToMC(hex_code: str, use_essentials: bool = False):
+    hex_code = hex_code.lstrip('#')
+    if len(hex_code) != 6:
+        error_dialog("Hex code must be 6 characters long (e.g. #RRGGBB)")
+        return None
+    
+    delimeter = "&" if use_essentials else "§"
+    converted = delimeter + "x"
+    for c in hex_code:
+        if c not in "0123456789abcdefABCDEF":
+            error_dialog("Hex code must only contain hexadecimal characters (0-9, A-F)")
+            return None
+        converted += delimeter + c
+    return converted
 
 def main():
     app = QApplication([])
@@ -58,18 +63,15 @@ def main():
     def on_convert():
         hex_code = ui.hexInput.text().strip()
         use_essentials = ui.useEssential.isChecked()
-        try:
-            result = hexToMC(hex_code, use_essentials)
-        except ValueError as e:
-            error_dialog(str(e), ui)
-            return
+        result = hexToMC(hex_code, use_essentials)
         if result is not None:
-          output.output.setText(result)
-          output.exec()
+            output.output.setText(result)
+            output.exec()
 
     ui.convertbtn.clicked.connect(on_convert)
 
     ui.show()
     sys.exit(app.exec())
 
-main()
+if __name__ == "__main__":
+    main()
